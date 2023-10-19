@@ -1,8 +1,19 @@
-import sqlite3
-import sqlite_vss
+import sys
+sys.dont_write_bytecode = True
 
-db = sqlite3.connect('papers.db', timeout=10)
-db.enable_load_extension(True)
-sqlite_vss.load(db)
-vss_version = db.execute('select vss_version()').fetchone()[0]
-print('SQLite VSS Version: %s' % vss_version)
+from data import papers
+from db import db
+from functions import insert_paper, generate_embedding, search_similar_embeddings
+
+if __name__ == '__main__':
+  # papersテーブルにデータを挿入
+  for paper in papers:
+    paper_id = insert_paper(paper['title'], paper['abstract'], paper['summary'], paper['url'])
+
+  # クエリを作成して実行
+  query_embedding = generate_embedding('ロボット')
+  results = search_similar_embeddings(query_embedding)
+  print(results[0])
+
+  titles = [row[1] for row in results]
+  print(titles)
