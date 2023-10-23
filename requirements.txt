@@ -2,3 +2,4 @@ numpy
 openai
 sqlite-vss
 python-dotenv
+arxiv
