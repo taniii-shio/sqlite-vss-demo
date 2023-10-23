@@ -21,15 +21,15 @@ def generate_embedding(text: str) -> List[float]:
   )
   return response['data'][0]['embedding']
 
-def insert_paper(title, abstract, summary, url):
-  current_time = datetime.now()
+def insert_paper(entry_id, published, title, summary):
+  # current_time = datetime.now()
   summary_embedding = generate_embedding(summary)
 
   with db:
     db.execute('''
-        INSERT INTO papers(title, abstract, summary, url, created_at)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (title, abstract, summary, url, current_time))
+        INSERT INTO papers(entry_id, published, title, summary)
+        VALUES (?, ?, ?, ?)
+    ''', (entry_id, published, title, summary))
 
     last_id = db.execute('SELECT last_insert_rowid()').fetchone()[0]
 

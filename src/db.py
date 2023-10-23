@@ -11,11 +11,10 @@ print('SQLite VSS Version: %s' % vss_version)
 db.execute('''
     CREATE TABLE IF NOT EXISTS papers(
         id INTEGER PRIMARY KEY,
+        entry_id TEXT,
+        published DATETIME,
         title TEXT,
-        abstract TEXT,
-        summary TEXT,
-        url TEXT,
-        created_at DATETIME
+        summary TEXT
     );
 ''')
 
