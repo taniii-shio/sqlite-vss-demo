@@ -6,7 +6,7 @@ client = arxiv.Client()
 
 # Search for the 10 most recent articles matching the keyword "quantum."
 search = arxiv.Search(
-  query = "quantum",
+  query = "data science",
   max_results = 5,
   sort_by = arxiv.SortCriterion.SubmittedDate
 )
