@@ -1,5 +1,6 @@
 import sys
 sys.dont_write_bytecode = True
+import pprint
 
 import json
 # from data import papers
@@ -14,10 +15,14 @@ if __name__ == '__main__':
   for data in all_results:
     insert_paper(data['entry_id'], data['published'], data['title'], data['summary'])
 
-  # クエリを作成して実行
-  query_embedding = generate_embedding('量子')
+  # 検索
+  query_embedding = generate_embedding('Benchmarks')
   results = search_similar_embeddings(query_embedding)
-  print(results[0])
+  print(type(results))
+  pprint.pprint(results)
 
-  # titles = [row[1] for row in results]
-  # print(titles)
+  # summarys = [row[4] for row in results]
+  # print(type(summarys))
+  # print(summarys[0])
+
+  # langchainのプロンプトを使用し、summarys[0]を要約する
