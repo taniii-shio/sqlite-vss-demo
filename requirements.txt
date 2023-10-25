@@ -3,3 +3,5 @@ openai
 sqlite-vss
 python-dotenv
 arxiv
+langchain
+tiktoken
