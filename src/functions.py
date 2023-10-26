@@ -34,7 +34,7 @@ def insert_paper(entry_id, published, title, summary):
         VALUES (?, ?)
     ''', (last_id, serialize(summary_embedding)))
 
-def search_similar_embeddings(query_embedding, k=3):
+def search_similar_embeddings(query_embedding, k=1):
   results = db.execute('''
       SELECT papers.*, vss_papers.distance
       FROM vss_papers
