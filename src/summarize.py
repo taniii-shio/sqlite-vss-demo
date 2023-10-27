@@ -19,8 +19,7 @@ def summarize(summary: str) -> str:
     出力の形式は以下の通りです。
     目的:
     方法:
-    新規性:
-    要約:"""
+    新規性:"""
 
     # プロンプトテンプレートの準備
     prompt = PromptTemplate(
