@@ -1,39 +1,48 @@
 import os
+import re
 from dotenv import load_dotenv
 load_dotenv()
+from typing import List
 
+import schemas.paper as paper_schema
 from langchain.chat_models import AzureChatOpenAI
-from langchain.chains import LLMChain
+from langchain.chains import create_extraction_chain
 from langchain.prompts import PromptTemplate
 
-def summarize(summary: str) -> str:
+def summarize(abstract: str):
     llm = AzureChatOpenAI(
     deployment_name=os.getenv("CHAT_DEPLOYMENT_NAME"),
-    temperature=0.5,)
+    temperature=0,)
 
-    # テンプレートの準備
+    schema = {
+        "properties": {
+            "purpose": {
+                "type": "string",
+                "description": "The purpose of the paper",
+            },
+            "method": {
+                "type": "string",
+                "description": "The method of the paper",
+            },
+            "novelty": {
+                "type": "string",
+                "description": "The novelty of the paper",
+            },
+        },
+        "required": ["purpose", "method", "novelty"],
+    }
+
     template = """
-    以下の論文のアブストラクトの、「目的」「方法」「新規性」を中学生でもわかるように一言で表し、大学生がわかるようになるべく詳細に400文字程度で要約してください。
-    アブストラクト: {human_input}
+        From the following abstract, please tell us "purpose", "method", and "novelty" in about 3 sentences each. Also, please make sure that a junior high school student can understand it.
+        Abstract: {abstract}
+    """
 
-    出力の形式は以下の通りです。
-    目的:
-    方法:
-    新規性:"""
-
-    # プロンプトテンプレートの準備
     prompt = PromptTemplate(
-        input_variables=["human_input"],
+        input_variables=["abstract"],
         template=template
     )
 
-    # LLMChainの準備
-    llm_chain = LLMChain(
-        llm=llm,
-        prompt=prompt,
-        # verbose=True,
-    )
+    chain = create_extraction_chain(schema=schema, llm=llm, prompt=prompt)
+    result = chain.predict(abstract=abstract)
 
-    response = llm_chain.predict(human_input=summary)
-
-    return response
+    return result

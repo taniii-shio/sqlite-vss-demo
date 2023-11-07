@@ -18,29 +18,35 @@ def generate_embedding(text: str) -> List[float]:
   response = embeddings.embed_query(text)
   return response
 
-def insert_paper(entry_id, published, title, summary):
-  summary_embedding = generate_embedding(summary)
+def insert_paper(published, title, primary_category, url, abstract):
+  abstract_embedding = generate_embedding(abstract)
 
   with db:
     db.execute('''
-        INSERT INTO papers(entry_id, published, title, summary)
-        VALUES (?, ?, ?, ?)
-    ''', (entry_id, published, title, summary))
+        INSERT INTO papers(published, title, primary_category, url, abstract)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (published, title, primary_category, url, abstract))
 
     last_id = db.execute('SELECT last_insert_rowid()').fetchone()[0]
 
     db.execute('''
-        INSERT INTO vss_papers(rowid, summary_embedding)
+        INSERT INTO vss_papers(rowid, abstract_embedding)
         VALUES (?, ?)
-    ''', (last_id, serialize(summary_embedding)))
+    ''', (last_id, serialize(abstract_embedding)))
 
-def search_similar_embeddings(query_embedding, k=3):
+def search_similar_embeddings(query_embedding, category, k):
+  if category == "all":
+    category = "%cs%"
+  else:
+    category = "cs." + category
+
   results = db.execute('''
       SELECT papers.*, vss_papers.distance
       FROM vss_papers
       JOIN papers ON vss_papers.rowid = papers.id
-      WHERE vss_search(vss_papers.summary_embedding, vss_search_params(?, 10))
+      WHERE papers.primary_category LIKE ?
+      AND vss_search(vss_papers.abstract_embedding, vss_search_params(?, 10))
       ORDER BY vss_papers.distance
       LIMIT ?
-  ''', (serialize(query_embedding), k))
+  ''', (category, serialize(query_embedding), k))
   return results.fetchall()

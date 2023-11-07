@@ -11,16 +11,17 @@ print('SQLite VSS Version: %s' % vss_version)
 db.execute('''
     CREATE TABLE IF NOT EXISTS papers(
         id INTEGER PRIMARY KEY,
-        entry_id TEXT,
         published DATETIME,
         title TEXT,
-        summary TEXT
+        primary_category TEXT,
+        url TEXT,
+        abstract TEXT
     );
 ''')
 
 # vss_paperテーブルの作成
 db.execute('''
     CREATE VIRTUAL TABLE IF NOT EXISTS vss_papers USING vss0(
-        summary_embedding(1536)
+        abstract_embedding(1536)
     );
 ''')

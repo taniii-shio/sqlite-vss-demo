@@ -1,7 +1,9 @@
 numpy
-openai
+openai==0.28.1
 sqlite-vss
 python-dotenv
 arxiv
 langchain
 tiktoken
+fastapi
+uvicorn[standard]

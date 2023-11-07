@@ -20,8 +20,10 @@ all_results = [{k: v for k, v in d.items() if k in ('title', 'summary', 'publish
 # publishedをdatetime型に変換する
 for d in all_results:
   d['published'] = d['published'].strftime('%Y-%m-%d')
+  d['url'] = d.pop('entry_id')
+  d['abstract'] = d.pop('summary')
 
-pprint.pprint(all_results)
+# pprint.pprint(all_results)
 
 # all_resultsをjson形式で保存する
 import json
