@@ -1,12 +1,27 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 
 import schemas.paper as paper_schema
 from db.db import search_similar_embeddings
 from functions.embedding import generate_embedding
 from functions.summarize import summarize
+from functions.translate import translate
+
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/papers", response_model=List[paper_schema.SummarizedPaper])
 async def search_papers(keyword: str, category: str, num: int, lan: int):
@@ -24,7 +39,10 @@ async def search_papers(keyword: str, category: str, num: int, lan: int):
     if lan == 0:
         pass
     elif lan == 1:
-        # 翻訳する
-        pass
-
+        # summarize_resultsのpurpose, method, noveltyをtranslateを使用し、日本語に翻訳
+        for row in summarize_results:
+            row.purpose = translate(row.purpose)
+            row.method = translate(row.method)
+            row.novelty = translate(row.novelty)
+        
     return summarize_results
