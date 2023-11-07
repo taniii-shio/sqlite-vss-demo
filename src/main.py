@@ -1,42 +1,30 @@
-import sys
-sys.dont_write_bytecode = True
-import pprint
-import json
+from fastapi import FastAPI
+from typing import List
 
-from functions import insert_paper, generate_embedding, search_similar_embeddings
-from summarize import summarize
+import schemas.paper as paper_schema
+from db.db import search_similar_embeddings
+from functions.embedding import generate_embedding
+from functions.summarize import summarize
 
-import arxiv
+app = FastAPI()
 
-if __name__ == '__main__':
-  # papersテーブルにデータを挿入
-  # with open('data.json') as f:
-  #   all_results = json.load(f)
+@app.get("/papers", response_model=List[paper_schema.SummarizedPaper])
+async def search_papers(keyword: str, category: str, num: int, lan: int):
+  # キーワードとカテゴリーと件数でベクトル検索
+    query_embedding = generate_embedding(keyword)
+    search_results: List[paper_schema.SearchedPaper] = [paper_schema.SearchedPaper(**dict(zip(["id", "published", "title", "primary_category", "url", "abstract"], row))) for row in search_similar_embeddings(query_embedding, category, num)]
 
-  # for data in all_results:
-  #   insert_paper(data['entry_id'], data['published'], data['title'], data['summary'])
+  # 目的、手法、新規性を要約
+    summarize_results: List[paper_schema.SummarizedPaper] = []
+    for row in search_results:
+        summarized = summarize(row.abstract)
+        summarize_results.append(paper_schema.SummarizedPaper(**dict(zip(["id", "published", "title", "primary_category", "url", "purpose", "method", "novelty"], [row.id, row.published, row.title, row.primary_category, row.url, summarized[0]["purpose"], summarized[0]["method"], summarized[0]["novelty"]]))))
 
-  # 検索
-  query = "LLM"
-  query_embedding = generate_embedding(query)
-  results = search_similar_embeddings(query_embedding)
-  # 検索結果を要約のみのリストに整形（4列目がsummary）
-  # summarys = [row[1] for row in results]
-  # pprint.pprint(summarys)
-  # print(len(summarys))
+  # 日本語の場合は翻訳する
+    if lan == 0:
+        pass
+    elif lan == 1:
+        # 翻訳する
+        pass
 
-  pprint.pprint(results[0])
-
-  # print("query : " + query)
-  # for row in results:
-  #   print('------------------')
-  #   print("title : " + row[3])
-  #   print("url : " + row[1]) 
-
-  #   # 要約する
-  #   summary = summarize(row[4])
-  #   print(summary)
-
-  # arxivAPIでpdfをダウンロードする
-  # paper = next(arxiv.Client().results(arxiv.Search(id_list=[entry_ids[0].replace("http://arxiv.org/abs/", "")])))
-  # paper.download_pdf()
+    return summarize_results

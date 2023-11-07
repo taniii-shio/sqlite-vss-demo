@@ -1,13 +1,13 @@
 import os
-import re
 from dotenv import load_dotenv
-load_dotenv()
 from typing import List
-
-import schemas.paper as paper_schema
 from langchain.chat_models import AzureChatOpenAI
 from langchain.chains import create_extraction_chain
 from langchain.prompts import PromptTemplate
+
+import schemas.paper as paper_schema
+
+load_dotenv()
 
 def summarize(abstract: str):
     llm = AzureChatOpenAI(

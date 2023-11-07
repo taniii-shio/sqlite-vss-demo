@@ -1,22 +1,34 @@
-import os
-from dotenv import load_dotenv
-
+import sqlite3, sqlite_vss, numpy as np
 from typing import List
-from datetime import datetime
-import numpy as np
-from langchain.embeddings import OpenAIEmbeddings
-from db import db
+from functions.embedding import generate_embedding
 
-load_dotenv()
+db = sqlite3.connect('papers.db', timeout=10)
+db.enable_load_extension(True)
+sqlite_vss.load(db)
+vss_version = db.execute('select vss_version()').fetchone()[0]
+print('SQLite VSS Version: %s' % vss_version)
+
+# papersテーブルの作成
+db.execute('''
+    CREATE TABLE IF NOT EXISTS papers(
+        id INTEGER PRIMARY KEY,
+        published DATETIME,
+        title TEXT,
+        primary_category TEXT,
+        url TEXT,
+        abstract TEXT
+    );
+''')
+
+# vss_paperテーブルの作成
+db.execute('''
+    CREATE VIRTUAL TABLE IF NOT EXISTS vss_papers USING vss0(
+        abstract_embedding(1536)
+    );
+''')
 
 def serialize(vector: List[float]) -> bytes:
-  # """ serializes a list of floats into a compact "raw bytes" format """
   return np.asarray(vector).astype(np.float32).tobytes()
-
-def generate_embedding(text: str) -> List[float]:
-  embeddings = OpenAIEmbeddings(deployment=os.getenv("EMBE_DEPLOYMENT_NAME"), chunk_size=1)
-  response = embeddings.embed_query(text)
-  return response
 
 def insert_paper(published, title, primary_category, url, abstract):
   abstract_embedding = generate_embedding(abstract)
